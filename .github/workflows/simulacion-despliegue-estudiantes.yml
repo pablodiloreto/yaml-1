@@ -1,5 +1,6 @@
-# 👨‍🏫 Simulación de Despliegue para Estudiantes (Versión Visual)
-name: 'CI/CD: Build, Test, Deploy (Simulación Visual)'
+# Este es un ejemplo de cómo se vería la lógica de tus imágenes en un archivo de GitHub Actions
+
+name: 'Traducción de GitLab a GitHub Actions'
 
 on:
   push:
@@ -7,41 +8,36 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Este job simula todo el proceso de CI/CD
-  build-test-and-deploy:
+  # ---- Este job simula la "stage: build" ----
+  build-job:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: '➡️ 1. Checkout del Código'
-        uses: actions/checkout@v4
+      - run: echo "Compiling the code..."
+      - run: echo "Compile complete."
 
-      # --- FASE DE BUILD ---
-      - name: '🏗️ 2. Fase de Build (Construcción)'
-        run: |
-          echo "Iniciando la construcción del proyecto..."
-          echo "Esto simula la compilación, instalación de dependencias, etc."
-          sleep 30 # <-- ESPERA DE 30 SEGUNDOS
-          echo "✅ ¡Proyecto construido exitosamente!"
+  # ---- Estos 2 jobs simulan la "stage: test" ----
+  # Ambos dependen de que 'build-job' termine y corren en paralelo entre sí.
+  unit-test-job:
+    runs-on: ubuntu-latest
+    needs: build-job # <-- Le dice a GitHub que este job necesita que 'build-job' termine primero.
+    steps:
+      - run: echo "Running unit tests... This will take about 60 seconds."
+      - run: sleep 60
+      - run: echo "Code coverage is 90%"
 
-      # --- FASE DE TEST ---
-      - name: '🧪 3. Fase de Test (Pruebas)'
-        run: |
-          echo "Iniciando la ejecución de pruebas automatizadas..."
-          echo "Simulando pruebas unitarias, de integración y funcionales."
-          sleep 30 # <-- ESPERA DE 30 SEGUNDOS
-          echo "✅ ¡Todas las pruebas han pasado!"
+  lint-test-job:
+    runs-on: ubuntu-latest
+    needs: build-job # <-- También depende de 'build-job'. Como ambos dependen de lo mismo, corren en paralelo.
+    steps:
+      - run: echo "Linting code... This will take about 10 seconds."
+      - run: sleep 10
+      - run: echo "No lint issues found."
 
-      # --- FASE DE DEPLOY ---
-      - name: '🚀 4. Fase de Deploy (Despliegue a Staging)'
-        run: |
-          echo "Iniciando despliegue al entorno de pruebas (Staging)..."
-          echo "Conectando con el servidor, subiendo archivos..."
-          sleep 30 # <-- ESPERA DE 30 SEGUNDOS
-          echo "✅ ¡Desplegado en Staging correctamente!"
-
-      - name: '🎉 5. Fase de Deploy (Despliegue a Producción)'
-        run: |
-          echo "¡APROBADO! Iniciando despliegue final a Producción..."
-          echo "Este es el paso final. La nueva versión estará disponible para los usuarios."
-          sleep 30 # <-- ESPERA DE 30 SEGUNDOS
-          echo "✨ ¡Despliegue en Producción completado con ÉXITO!"
+  # ---- Este job simula la "stage: deploy" ----
+  deploy-job:
+    runs-on: ubuntu-latest
+    # Le dice a GitHub que espere a que AMBOS jobs de prueba terminen exitosamente.
+    needs: [unit-test-job, lint-test-job] 
+    steps:
+      - run: echo "Deploying application..."
+      - run: echo "Application successfully deployed."
